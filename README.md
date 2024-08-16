@@ -1,5 +1,5 @@
 ---
-title: Open LLM Leaderboard 2
+title: Llamatouch Leaderboard
 emoji: 🏆
 colorFrom: green
 colorTo: indigo
@@ -19,7 +19,7 @@ space_ci:
   - WEBHOOK_SECRET
 tags:
 - leaderboard
-short_description: Track, rank and evaluate open LLMs and chatbots
+short_description: Track, rank and evaluate mobile agents on custom datasets
 ---
 
 Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
