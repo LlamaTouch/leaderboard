@@ -1,9 +1,9 @@
 from src.display.utils import ModelType
 
-TITLE = """<h1 style="text-align:left;float:left; id="space-title">🤗 Open LLM Leaderboard</h1> <h3 style="text-align:left;float:left;> Track, rank and evaluate open LLMs and chatbots </h3>"""
+TITLE = """<h1 style="text-align:left;float:left; id="space-title">Llamatouch🧐 Moblie agent Leaderboard</h1> <h3 style="text-align:left;float:left;> Track, rank and evaluate mobile agents on custom datasets </h3>"""
 
 INTRODUCTION_TEXT = """
-The previous Leaderboard version is live [here](https://huggingface.co/spaces/open-llm-leaderboard-old/open_llm_leaderboard) 📊  Feeling lost? Check out our [documentation](https://huggingface.co/docs/leaderboards/open_llm_leaderboard/about) 📄
+Feeling lost? Check out our [documentation](https://github.com/LlamaTouch/LlamaTouch/blob/main/dataset/README.md) 📄
 \n You'll notably find explanations on the evaluations we are using, reproducibility guidelines, best practices on how to submit a model, and our FAQ.
 """
 
@@ -225,6 +225,7 @@ Choose the right precision to avoid evaluation errors:
 """
 
 CITATION_BUTTON_LABEL = "Copy the following snippet to cite these results"
+# TODO 可能需要附上原始model的东西
 CITATION_BUTTON_TEXT = r"""
 @misc{open-llm-leaderboard-v2,
   author = {Clémentine Fourrier and Nathan Habib and Alina Lozovskaya and Konrad Szafer and Thomas Wolf},

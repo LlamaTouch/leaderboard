@@ -45,10 +45,10 @@ def get_leaderboard_df(leaderboard_dataset: Dataset, cols: list, benchmark_cols:
     all_data_json = leaderboard_dataset.to_dict()
     num_items = leaderboard_dataset.num_rows
     all_data_json_list = [{k: all_data_json[k][ix] for k in all_data_json.keys()} for ix in range(num_items)]
-    filter_models_flags(all_data_json_list)
+    # filter_models_flags(all_data_json_list)
 
     df = pd.DataFrame.from_records(all_data_json_list)
-    df = df.sort_values(by=[AutoEvalColumn.average.name], ascending=False)
+    df = df.sort_values(by=[AutoEvalColumn.Llamatouch_TCR.name], ascending=False)
     df = df[cols].round(decimals=2)
-    df = df[has_no_nan_values(df, benchmark_cols)]
+    # df = df[has_no_nan_values(df, benchmark_cols)]
     return df

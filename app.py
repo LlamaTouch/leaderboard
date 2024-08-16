@@ -42,14 +42,14 @@ from src.envs import (
     HF_TOKEN,
     QUEUE_REPO,
     REPO_ID,
-    VOTES_REPO,
-    VOTES_PATH,
+    # VOTES_REPO,
+    # VOTES_PATH,
     HF_HOME,
 )
 from src.populate import get_evaluation_queue_df, get_leaderboard_df
 from src.submission.submit import add_new_eval
 from src.tools.plots import create_metric_plot_obj, create_plot_df, create_scores_df
-from src.voting.vote_system import VoteManager, run_scheduler
+# from src.voting.vote_system import VoteManager, run_scheduler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -139,7 +139,7 @@ def init_space():
         # These downloads only occur on full initialization
         try:
             download_dataset(QUEUE_REPO, EVAL_REQUESTS_PATH)
-            download_dataset(VOTES_REPO, VOTES_PATH)
+            # download_dataset(VOTES_REPO, VOTES_PATH)
         except Exception:
             restart_space()
 
@@ -153,15 +153,15 @@ def init_space():
     return LEADERBOARD_DF, eval_queue_dfs
 
 # Initialize VoteManager
-vote_manager = VoteManager(VOTES_PATH, EVAL_REQUESTS_PATH, VOTES_REPO)
+# vote_manager = VoteManager(VOTES_PATH, EVAL_REQUESTS_PATH, VOTES_REPO)
 
 
 # Schedule the upload_votes method to run every 15 minutes
-schedule.every(15).minutes.do(vote_manager.upload_votes)
+# schedule.every(15).minutes.do(vote_manager.upload_votes)
 
 # Start the scheduler in a separate thread
-scheduler_thread = Thread(target=run_scheduler, args=(vote_manager,), daemon=True)
-scheduler_thread.start()
+# scheduler_thread = Thread(target=run_scheduler, args=(vote_manager,), daemon=True)
+# scheduler_thread.start()
 
 # Calls the init_space function with the `full_init` parameter determined by the `do_full_init` variable.
 # This initializes various DataFrames used throughout the application, with the level of initialization detail controlled by the `do_full_init` flag.
@@ -191,27 +191,29 @@ def init_leaderboard(dataframe):
             cant_deselect=[c.name for c in fields(AutoEvalColumn) if c.never_hidden or c.dummy],
             label="Select Columns to Display:",
         ),
-        search_columns=[AutoEvalColumn.model.name, AutoEvalColumn.fullname.name, AutoEvalColumn.license.name],
+        # search_columns=[AutoEvalColumn.model.name, AutoEvalColumn.fullname.name, AutoEvalColumn.license.name],
+        search_columns=[AutoEvalColumn.model.name],
         hide_columns=[c.name for c in fields(AutoEvalColumn) if c.hidden],
         filter_columns=[
-            ColumnFilter(AutoEvalColumn.model_type.name, type="checkboxgroup", label="Model types"),
-            ColumnFilter(AutoEvalColumn.precision.name, type="checkboxgroup", label="Precision"),
-            ColumnFilter(
-                AutoEvalColumn.params.name,
-                type="slider",
-                min=0.01,
-                max=150,
-                label="Select the number of parameters (B)",
-            ),
-            ColumnFilter(
-                AutoEvalColumn.still_on_hub.name, type="boolean", label="Deleted/incomplete", default=True
-            ),
-            ColumnFilter(
-                AutoEvalColumn.merged.name, type="boolean", label="Merge/MoErge", default=True
-            ),
-            ColumnFilter(AutoEvalColumn.moe.name, type="boolean", label="MoE", default=False),
-            ColumnFilter(AutoEvalColumn.not_flagged.name, type="boolean", label="Flagged", default=True),
-            ColumnFilter(AutoEvalColumn.maintainers_highlight.name, type="boolean", label="Show only maintainer's highlight", default=False),
+            # ColumnFilter(AutoEvalColumn.model_type.name, type="checkboxgroup", label="Model types"),
+            # ColumnFilter(AutoEvalColumn.precision.name, type="checkboxgroup", label="Precision"),
+            # ColumnFilter(
+            #     AutoEvalColumn.params.name,
+            #     type="slider",
+            #     min=0.01,
+            #     max=150,
+            #     label="Select the number of parameters (B)",
+            # ),
+            # ColumnFilter(AutoEvalColumn.still_on_hub.name, type="boolean", label="Deleted/incomplete", default=True),
+            # ColumnFilter(AutoEvalColumn.merged.name, type="boolean", label="Merge/MoErge", default=True),
+            # ColumnFilter(AutoEvalColumn.moe.name, type="boolean", label="MoE", default=False),
+            # ColumnFilter(AutoEvalColumn.not_flagged.name, type="boolean", label="Flagged", default=True),
+            # ColumnFilter(
+            #     AutoEvalColumn.maintainers_highlight.name,
+            #     type="boolean",
+            #     label="Show only maintainer's highlight",
+            #     default=False,
+            # ),
         ],
         bool_checkboxgroup_label="Hide models",
         interactive=False,
@@ -362,28 +364,28 @@ with main_block:
 
                     vote_button = gr.Button("Vote", variant="primary")
 
-            with gr.Row():
-                with gr.Accordion(
-                    f"Available models pending ({len(pending_eval_queue_df)})",
-                    open=True,
-                ):
-                    with gr.Row():
-                        pending_eval_table_votes = gr.components.Dataframe(
-                            value=vote_manager.create_request_vote_df(
-                                pending_eval_queue_df
-                            ),
-                            headers=EVAL_COLS,
-                            datatype=EVAL_TYPES,
-                            row_count=5,
-                            interactive=False
-                        )
+            # with gr.Row():
+            #     with gr.Accordion(
+            #         f"Available models pending ({len(pending_eval_queue_df)})",
+            #         open=True,
+            #     ):
+            #         with gr.Row():
+            #             pending_eval_table_votes = gr.components.Dataframe(
+            #                 value=vote_manager.create_request_vote_df(
+            #                     pending_eval_queue_df
+            #                 ),
+            #                 headers=EVAL_COLS,
+            #                 datatype=EVAL_TYPES,
+            #                 row_count=5,
+            #                 interactive=False
+            #             )
 
             # Set the click event for the vote button
-            vote_button.click(
-                vote_manager.add_vote,
-                inputs=[selected_model, pending_eval_table],
-                outputs=[pending_eval_table_votes]
-            )
+            # vote_button.click(
+            #     vote_manager.add_vote,
+            #     inputs=[selected_model, pending_eval_table],
+            #     outputs=[pending_eval_table_votes]
+            # )
 
 
     with gr.Row():
@@ -398,7 +400,7 @@ with main_block:
 
     main_block.load(fn=get_latest_data_leaderboard, inputs=[leaderboard], outputs=[leaderboard])
     leaderboard.change(fn=get_latest_data_queue, inputs=None, outputs=[finished_eval_table, running_eval_table, pending_eval_table])
-    pending_eval_table.change(fn=vote_manager.create_request_vote_df, inputs=[pending_eval_table], outputs=[pending_eval_table_votes])
+    # pending_eval_table.change(fn=vote_manager.create_request_vote_df, inputs=[pending_eval_table], outputs=[pending_eval_table_votes])
 
 main_block.queue(default_concurrency_limit=40)
 

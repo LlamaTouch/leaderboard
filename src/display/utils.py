@@ -8,7 +8,7 @@ import pandas as pd
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-        
+
 # Convert ISO 8601 dates to datetime objects for comparison
 def parse_iso8601_datetime(date_str):
     if date_str.endswith('Z'):
@@ -87,39 +87,57 @@ class ColumnContent:
 
 
 auto_eval_column_dict = []
-# Init
-auto_eval_column_dict.append(["model_type_symbol", ColumnContent, ColumnContent("T", "str", True, never_hidden=True)])
-auto_eval_column_dict.append(["model", ColumnContent, ColumnContent("Model", "markdown", True, never_hidden=True)])
-# Scores
-auto_eval_column_dict.append(["average", ColumnContent, ColumnContent("Average ⬆️", "number", True)])
-for task in Tasks:
-    displayed_by_default = not task.name.endswith("_raw")
-    auto_eval_column_dict.append([task.name, ColumnContent, ColumnContent(task.value.col_name, "number", displayed_by_default=displayed_by_default)])
-# Model information
-auto_eval_column_dict.append(["model_type", ColumnContent, ColumnContent("Type", "str", False)])
-auto_eval_column_dict.append(["architecture", ColumnContent, ColumnContent("Architecture", "str", False)])
-auto_eval_column_dict.append(["weight_type", ColumnContent, ColumnContent("Weight type", "str", False, True)])
-auto_eval_column_dict.append(["precision", ColumnContent, ColumnContent("Precision", "str", False)])
-auto_eval_column_dict.append(["merged", ColumnContent, ColumnContent("Not_Merged", "bool", False)])
-auto_eval_column_dict.append(["license", ColumnContent, ColumnContent("Hub License", "str", False)])
-auto_eval_column_dict.append(["params", ColumnContent, ColumnContent("#Params (B)", "number", False)])
-auto_eval_column_dict.append(["likes", ColumnContent, ColumnContent("Hub ❤️", "number", False)])
+# # Init
+# auto_eval_column_dict.append(["model_type_symbol", ColumnContent, ColumnContent("T", "str", True, never_hidden=True)])
+# auto_eval_column_dict.append(["model", ColumnContent, ColumnContent("Model", "markdown", True, never_hidden=True)])
+# # Scores
+# auto_eval_column_dict.append(["average", ColumnContent, ColumnContent("Average ⬆️", "number", True)])
+# for task in Tasks:
+#     displayed_by_default = not task.name.endswith("_raw")
+#     auto_eval_column_dict.append([task.name, ColumnContent, ColumnContent(task.value.col_name, "number", displayed_by_default=displayed_by_default)])
+# # Model information
+# auto_eval_column_dict.append(["model_type", ColumnContent, ColumnContent("Type", "str", False)])
+# auto_eval_column_dict.append(["architecture", ColumnContent, ColumnContent("Architecture", "str", False)])
+# auto_eval_column_dict.append(["weight_type", ColumnContent, ColumnContent("Weight type", "str", False, True)])
+# auto_eval_column_dict.append(["precision", ColumnContent, ColumnContent("Precision", "str", False)])
+# auto_eval_column_dict.append(["merged", ColumnContent, ColumnContent("Not_Merged", "bool", False)])
+# auto_eval_column_dict.append(["license", ColumnContent, ColumnContent("Hub License", "str", False)])
+# auto_eval_column_dict.append(["params", ColumnContent, ColumnContent("#Params (B)", "number", False)])
+# auto_eval_column_dict.append(["likes", ColumnContent, ColumnContent("Hub ❤️", "number", False)])
+# auto_eval_column_dict.append(
+#     ["still_on_hub", ColumnContent, ColumnContent("Available on the hub", "bool", False, hidden=True)]
+# )
+# auto_eval_column_dict.append(["revision", ColumnContent, ColumnContent("Model sha", "str", False, False)])
+# auto_eval_column_dict.append(["not_flagged", ColumnContent, ColumnContent("Flagged", "bool", False, hidden=True)])
+# auto_eval_column_dict.append(["moe", ColumnContent, ColumnContent("MoE", "bool", False, hidden=True)])
+
+# auto_eval_column_dict.append(["submission_date", ColumnContent, ColumnContent("Submission Date", "bool", False, hidden=False)])
+# auto_eval_column_dict.append(["upload_to_hub", ColumnContent, ColumnContent("Upload To Hub Date", "bool", False, hidden=False)])
+
+# auto_eval_column_dict.append(["use_chat_template", ColumnContent, ColumnContent("Chat Template", "bool", False)])
+# auto_eval_column_dict.append(["maintainers_highlight", ColumnContent, ColumnContent("Maintainer's Highlight", "bool", False, hidden=True)])
+
+# # fullname structure: <user>/<model_name>
+# auto_eval_column_dict.append(["fullname", ColumnContent, ColumnContent("fullname", "str", False, dummy=True)])
+
 auto_eval_column_dict.append(
-    ["still_on_hub", ColumnContent, ColumnContent("Available on the hub", "bool", False, hidden=True)]
+    ["model", ColumnContent, ColumnContent("mobile agent", "str", True, never_hidden=True)]
 )
-auto_eval_column_dict.append(["revision", ColumnContent, ColumnContent("Model sha", "str", False, False)])
-auto_eval_column_dict.append(["not_flagged", ColumnContent, ColumnContent("Flagged", "bool", False, hidden=True)])
-auto_eval_column_dict.append(["moe", ColumnContent, ColumnContent("MoE", "bool", False, hidden=True)])
-
-auto_eval_column_dict.append(["submission_date", ColumnContent, ColumnContent("Submission Date", "bool", False, hidden=False)])
-auto_eval_column_dict.append(["upload_to_hub", ColumnContent, ColumnContent("Upload To Hub Date", "bool", False, hidden=False)])
-
-auto_eval_column_dict.append(["use_chat_template", ColumnContent, ColumnContent("Chat Template", "bool", False)])
-auto_eval_column_dict.append(["maintainers_highlight", ColumnContent, ColumnContent("Maintainer's Highlight", "bool", False, hidden=True)])
-
-# fullname structure: <user>/<model_name>
-auto_eval_column_dict.append(["fullname", ColumnContent, ColumnContent("fullname", "str", False, dummy=True)])
-
+auto_eval_column_dict.append(
+    ["stepwise_TCR", ColumnContent, ColumnContent("step-wise action match TCR", "number", True)]
+)
+auto_eval_column_dict.append(
+    ["stepwise_Acc", ColumnContent, ColumnContent("step-wise action match Acc.", "number", True)]
+)
+auto_eval_column_dict.append(
+    ["LCS_TCR", ColumnContent, ColumnContent("LCS action match TCR", "number", True)]
+)
+auto_eval_column_dict.append(
+    ["LCS_Acc", ColumnContent, ColumnContent("LCS action match Acc.", "number", True)]
+)
+auto_eval_column_dict.append(["Llamatouch_TCR", ColumnContent, ColumnContent("Llamatouch TCR", "number", True)])
+auto_eval_column_dict.append(["Llamatouch_Acc", ColumnContent, ColumnContent("Llamatouch Acc.", "number", True)])
+auto_eval_column_dict.append(["Human_TCR", ColumnContent, ColumnContent("Human TCR", "number", True)])
 # We use make dataclass to dynamically fill the scores from Tasks
 AutoEvalColumn = make_dataclass("AutoEvalColumn", auto_eval_column_dict, frozen=True)
 
