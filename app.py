@@ -10,6 +10,8 @@ from huggingface_hub import snapshot_download, WebhooksServer, WebhookPayload, R
 from gradio_leaderboard import Leaderboard, ColumnFilter, SelectColumns
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from src.DatasetViewer import get_datasets, update_trace_and_display, get_state_details, get_elem_details, display_element
+
 # Start ephemeral Spaces on PRs (see config in README.md)
 from gradio_space_ci.webhook import IS_EPHEMERAL_SPACE, SPACE_ID, configure_space_ci
 
@@ -80,28 +82,28 @@ def time_diff_wrapper(func):
 
 
 @time_diff_wrapper
-def download_dataset(repo_id, local_dir, repo_type="dataset", max_attempts=3, backoff_factor=1.5):
-    """Download dataset with exponential backoff retries."""
-    attempt = 0
-    while attempt < max_attempts:
-        try:
-            logging.info(f"Downloading {repo_id} to {local_dir}")
-            snapshot_download(
-                repo_id=repo_id,
-                local_dir=local_dir,
-                repo_type=repo_type,
-                tqdm_class=None,
-                etag_timeout=30,
-                max_workers=8,
-            )
-            logging.info("Download successful")
-            return
-        except Exception as e:
-            wait_time = backoff_factor**attempt
-            logging.error(f"Error downloading {repo_id}: {e}, retrying in {wait_time}s")
-            time.sleep(wait_time)
-            attempt += 1
-    raise Exception(f"Failed to download {repo_id} after {max_attempts} attempts")
+# def download_dataset(repo_id, local_dir, repo_type="dataset", max_attempts=3, backoff_factor=1.5):
+#     """Download dataset with exponential backoff retries."""
+#     attempt = 0
+#     while attempt < max_attempts:
+#         try:
+#             logging.info(f"Downloading {repo_id} to {local_dir}")
+#             snapshot_download(
+#                 repo_id=repo_id,
+#                 local_dir=local_dir,
+#                 repo_type=repo_type,
+#                 tqdm_class=None,
+#                 etag_timeout=30,
+#                 max_workers=8,
+#             )
+#             logging.info("Download successful")
+#             return
+#         except Exception as e:
+#             wait_time = backoff_factor**attempt
+#             logging.error(f"Error downloading {repo_id}: {e}, retrying in {wait_time}s")
+#             time.sleep(wait_time)
+#             attempt += 1
+#     raise Exception(f"Failed to download {repo_id} after {max_attempts} attempts")
 
 def get_latest_data_leaderboard(leaderboard_initial_df = None):
     global NEW_DATA_ON_LEADERBOARD
@@ -135,13 +137,13 @@ def get_latest_data_queue():
 
 def init_space():
     """Initializes the application space, loading only necessary data."""
-    if DO_FULL_INIT:
-        # These downloads only occur on full initialization
-        try:
-            download_dataset(QUEUE_REPO, EVAL_REQUESTS_PATH)
-            # download_dataset(VOTES_REPO, VOTES_PATH)
-        except Exception:
-            restart_space()
+    # if DO_FULL_INIT:
+    #     # These downloads only occur on full initialization
+    #     try:
+    #         download_dataset(QUEUE_REPO, EVAL_REQUESTS_PATH)
+    #         # download_dataset(VOTES_REPO, VOTES_PATH)
+    #     except Exception:
+    #         restart_space()
 
     # Always redownload the leaderboard DataFrame
     global LEADERBOARD_DF
@@ -223,7 +225,7 @@ main_block = gr.Blocks(css=custom_css)
 with main_block:
     with gr.Row(elem_id="header-row"):
         gr.HTML(TITLE)
-    
+
     gr.Markdown(INTRODUCTION_TEXT, elem_classes="markdown-text")
 
     with gr.Tabs(elem_classes="tab-buttons") as tabs:
@@ -273,14 +275,14 @@ with main_block:
                         interactive=True,
                     )
                     base_model_name_textbox = gr.Textbox(label="Base model (for delta or adapter weights)")
-            
+
             with gr.Column():
                 with gr.Accordion(
                     f"✅ Finished Evaluations ({len(finished_eval_queue_df)})",
                     open=False,
                     ):
-                        with gr.Row():
-                            finished_eval_table = gr.components.Dataframe(
+                    with gr.Row():
+                        finished_eval_table = gr.components.Dataframe(
                                 value=finished_eval_queue_df,
                                 headers=EVAL_COLS,
                                 datatype=EVAL_TYPES,
@@ -319,7 +321,7 @@ with main_block:
             # The chat template checkbox update function
             def update_chat_checkbox(model_type_value):
                 return ModelType.from_str(model_type_value) == ModelType.chat
-            
+
             model_type.change(
                 fn=update_chat_checkbox,
                 inputs=[model_type],  # Pass the current checkbox value
@@ -341,52 +343,62 @@ with main_block:
             )
 
         # Ensure  the values in 'pending_eval_queue_df' are correct and ready for the DataFrame component
-        with gr.TabItem("🆙 Model Vote"):
+        with gr.TabItem("🆙 Dataset"):
             with gr.Row():
                 gr.Markdown(
-                    "## Vote for the models which should be evaluated first! \nYou'll need to sign in with the button above first. All votes are recorded.", 
+                    "## View, check, submit datasets for evaluation. \n", 
                     elem_classes="markdown-text"
                 )
-                login_button = gr.LoginButton(elem_id="oauth-button")
+            dataset_list = get_datasets()
+            with gr.Column():
+                dataset_dropdown = gr.Dropdown(label="Select Dataset", choices=dataset_list)
+                trace_dropdown = gr.Dropdown(label="Select Trace", allow_custom_value=True)
+                # sys_info = gr.Textbox(label="System Info")
+                #     output_image = gr.Image(label="Image Viewer")
+                #     output_text = gr.Textbox(label="Text Viewer")
+                output_image = gr.Image(label="Image Viewer")
+                submit = gr.Button(
+                    value="(Not implemented yet) Submit your feedback if you beileve this trace's essential states are mislabeled",
+                    visible=False,
+                )
+                detailed_trace = gr.Dropdown(label="Select an UIState to view its details", allow_custom_value=True)
 
+                with gr.Row():  # 使用 Row 布局将图片和文字并排显示
+                    state_image = gr.Image(label="Image for this state", visible=False)
+                    with gr.Column():
+                        state_elem = gr.Dropdown(label="All the UI Elements", allow_custom_value=True, visible=False, value=0)
+                        state_text = gr.Textbox(label="Details for the selected UI Element", visible=False)
 
-            with gr.Row():
-                pending_models = pending_eval_queue_df[EvalQueueColumn.model_name.name].to_list()
+                # 当选择数据集时，更新子文件夹选项并显示默认的第一个子文件夹内容
+                dataset_dropdown.change(
+                    fn=update_trace_and_display,
+                    inputs=[dataset_dropdown, trace_dropdown],
+                    outputs=[
+                        trace_dropdown,  # 设置choices
+                        output_image,
+                        # output_text,
+                        # sys_info,  # 输出错误消息
+                    ],
+                )
 
-                with gr.Column():
-                    selected_model = gr.Dropdown(
-                        choices=pending_models,
-                        label="Models",
-                        multiselect=False,
-                        value="str",
-                        interactive=True,
-                    )
+                # 当选择子文件夹时，显示对应的图片和文本
+                trace_dropdown.change(
+                    fn=display_element,
+                    inputs=[dataset_dropdown, trace_dropdown],
+                    # outputs=[output_image, output_text, sys_info],
+                    outputs=[output_image, detailed_trace, submit],
+                )
 
-                    vote_button = gr.Button("Vote", variant="primary")
-
-            # with gr.Row():
-            #     with gr.Accordion(
-            #         f"Available models pending ({len(pending_eval_queue_df)})",
-            #         open=True,
-            #     ):
-            #         with gr.Row():
-            #             pending_eval_table_votes = gr.components.Dataframe(
-            #                 value=vote_manager.create_request_vote_df(
-            #                     pending_eval_queue_df
-            #                 ),
-            #                 headers=EVAL_COLS,
-            #                 datatype=EVAL_TYPES,
-            #                 row_count=5,
-            #                 interactive=False
-            #             )
-
-            # Set the click event for the vote button
-            # vote_button.click(
-            #     vote_manager.add_vote,
-            #     inputs=[selected_model, pending_eval_table],
-            #     outputs=[pending_eval_table_votes]
-            # )
-
+                detailed_trace.change(
+                    fn=get_state_details,
+                    inputs=[dataset_dropdown, trace_dropdown, detailed_trace],
+                    outputs=[state_image, state_elem, state_text],
+                )
+                state_elem.change(
+                    fn=get_elem_details,
+                    inputs=[dataset_dropdown, trace_dropdown, detailed_trace, state_elem],
+                    outputs=[state_text],
+                )
 
     with gr.Row():
         with gr.Accordion("📙 Citation", open=False):
@@ -465,7 +477,7 @@ def update_queue(payload: WebhookPayload) -> None:
             print("Would have updated the queue")
             # We only redownload is last update was more than 10 minutes ago, as the queue is 
             # updated regularly and heavy to download
-            download_dataset(QUEUE_REPO, EVAL_REQUESTS_PATH)
+            # download_dataset(QUEUE_REPO, EVAL_REQUESTS_PATH)
             LAST_UPDATE_QUEUE = datetime.datetime.now()
 
 webhooks_server.launch()
